@@ -9,4 +9,3 @@ Type=Application
 Icon=github-desktop-plus
 Categories=Development;
 MimeType=x-scheme-handler/x-github-client;x-scheme-handler/x-github-desktop-auth;x-scheme-handler/x-github-desktop-dev-auth;
-StartupWMClass=GitHub Desktop
