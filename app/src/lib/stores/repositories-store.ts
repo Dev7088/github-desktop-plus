@@ -28,6 +28,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
+import { EditorOverride } from '../../models/editor-override'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -348,6 +349,17 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.customEditorOverride,
       repository.isTutorialRepository
     )
+  }
+
+  public async updateRepositoryEditorOverride(
+    repository: Repository,
+    customEditorOverride: EditorOverride | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, {
+      customEditorOverride,
+    })
+
+    this.emitUpdatedRepositories()
   }
 
   /**

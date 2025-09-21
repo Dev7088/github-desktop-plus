@@ -359,6 +359,7 @@ import {
 } from '../../models/branch-preset'
 import { BypassReasonType } from '../../ui/secret-scanning/bypass-push-protection-dialog'
 import { getStore } from '../../main-process/settings-store'
+import { EditorOverride } from '../../models/editor-override'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -4565,6 +4566,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       defaultBranch
     )
     await this._refreshRepository(repo)
+  }
+
+  public async _updateRepositoryEditorOverride(
+    repository: Repository,
+    customEditorOverride: EditorOverride | null
+  ): Promise<void> {
+    await this.repositoriesStore.updateRepositoryEditorOverride(
+      repository,
+      customEditorOverride
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

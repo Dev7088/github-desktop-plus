@@ -81,6 +81,7 @@ export class Repository {
       this.missing,
       this.alias,
       this.defaultBranch,
+      getCustomOverrideHash(this.customEditorOverride),
       this.workflowPreferences.forkContributionTarget,
       this.isTutorialRepository
     )
@@ -290,5 +291,16 @@ export function isForkedRepositoryContributingToParent(
   return (
     isRepositoryWithForkedGitHubRepository(repository) &&
     getForkContributionTarget(repository) === ForkContributionTarget.Parent
+  )
+}
+
+function getCustomOverrideHash(
+  customEditorOverride: EditorOverride | null
+): string {
+  return createEqualityHash(
+    customEditorOverride?.selectedExternalEditor,
+    customEditorOverride?.useCustomEditor,
+    customEditorOverride?.customEditor?.path,
+    customEditorOverride?.customEditor?.arguments
   )
 }
