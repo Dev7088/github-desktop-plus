@@ -200,9 +200,12 @@ yarn test:docker
 
 ## Why this fork?
 
-While the "official" Linux fork of GitHub Desktop is great, I think it's slow in terms of updates and lacks some advanced features that I'd like. This fork has low code quality requirements compared to the official fork, so I (and hopefully you as well) can add features and improvements quickly.
+First of all, because shiftkey's fork is currently unmaintained (last commit was in February 2025), so it's not getting the latest features and fixes from the official GitHub Desktop repository.
 
+Secondly, I think the official GitHub Desktop app is very slow in terms of updates and lacks some advanced features that I'd like. This fork has low code quality requirements compared to the official repo, so I (and hopefully you as well) can add features and improvements quickly.  
 This fork also focuses on integrating nicely with Bitbucket, since I use it for work and haven't found a good Linux GUI client for it.
+
+Keep in mind that this version is not endorsed by GitHub, and it's aimed at power users with technical knowledge. If you're looking for a polished and stable product, I recommend using the official GitHub Desktop app instead.
 
 ---
 
