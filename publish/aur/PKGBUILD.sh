@@ -15,6 +15,7 @@ license=('MIT')
 provides=($pkgname)
 conflicts=($pkgname)
 depends=(curl
+         libcurl-gnutls
          git
          gtk3
          libsecret
