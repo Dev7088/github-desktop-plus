@@ -118,9 +118,10 @@ jobs:
           else
             tagNameWithoutPrefix="${RELEASE_TAG}"
           fi
-          echo "RELEASE_TAG_WITHOUT_PREFIX=${tagNameWithoutPrefix}" >> $GITHUB_ENV
+          VERSION_WITHOUT_V=$(echo "${tagNameWithoutPrefix}" | sed -E "s/v(.*)/\\1/")
+          echo "VERSION_WITHOUT_V=${VERSION_WITHOUT_V}" >> $GITHUB_ENV
           # Export for downstream jobs
-          echo "${tagNameWithoutPrefix}" > release_tag_without_prefix.txt
+          echo "${VERSION_WITHOUT_V}" > VERSION_WITHOUT_V.txt
 
       # GitHubDesktop-linux-<arch>-<old_version>.<ext> -> GitHubDesktopPlus-<release_tag>-linux-<arch>.<ext>
       # GitHubDesktop-linux-<arch>-<old_version>-beta1.<ext> -> GitHubDesktopPlus-<release_tag>-linux-<arch>.<ext>
@@ -136,9 +137,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: GitHub Desktop Plus ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}
+          name: GitHub Desktop Plus v${{ env.VERSION_WITHOUT_V }}
           body: |
-            Upstream: [GitHub Desktop ${{ env.RELEASE_TAG_WITHOUT_PREFIX }} release notes](https://github.com/desktop/desktop/releases/tag/release-${{ env.RELEASE_TAG_WITHOUT_PREFIX }})
+            Upstream: [GitHub Desktop ${{ env.VERSION_WITHOUT_V }} release notes](https://github.com/desktop/desktop/releases/tag/release-${{ env.VERSION_WITHOUT_V }})
           files: |
             artifacts/**/*.AppImage
             artifacts/**/*.deb
@@ -148,11 +149,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload RELEASE_TAG_WITHOUT_PREFIX artifact
+      - name: Upload VERSION_WITHOUT_V artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release_tag_without_prefix
-          path: release_tag_without_prefix.txt
+          name: VERSION_WITHOUT_V
+          path: VERSION_WITHOUT_V.txt
           retention-days: 1
           if-no-files-found: error
 
@@ -171,20 +172,20 @@ jobs:
         with:
           path: './artifacts'
 
-      - name: Download RELEASE_TAG_WITHOUT_PREFIX artifact
+      - name: Download VERSION_WITHOUT_V artifact
         uses: actions/download-artifact@v4
         with:
-          name: release_tag_without_prefix
+          name: VERSION_WITHOUT_V
           path: './'
 
-      - name: Set RELEASE_TAG_WITHOUT_PREFIX env var
+      - name: Set VERSION_WITHOUT_V env var
         run: |
-          echo "RELEASE_TAG_WITHOUT_PREFIX=$(cat ./release_tag_without_prefix.txt)" >> $GITHUB_ENV
+          echo "VERSION_WITHOUT_V=$(cat ./VERSION_WITHOUT_V.txt)" >> $GITHUB_ENV
 
       - name: Rename artifacts
         run: |
           for file in $(find ./artifacts -type f -name "GitHubDesktop-linux-*"); do
-            new_name=$(echo "$file" | sed -E "s/GitHubDesktop-linux-(.*)-[0-9]+\\.[0-9]+\\.[0-9]+(-beta[0-9]+)?\\.(.*)/GitHubDesktopPlus-${{ env.RELEASE_TAG_WITHOUT_PREFIX }}-linux-\\1.\\3/")
+            new_name=$(echo "$file" | sed -E "s/GitHubDesktop-linux-(.*)-[0-9]+\\.[0-9]+\\.[0-9]+(-beta[0-9]+)?\\.(.*)/GitHubDesktopPlus-v${{ env.VERSION_WITHOUT_V }}-linux-\\1.\\3/")
             new_name=$(echo $new_name | sed -E "s/linux-amd64/linux-x86_64/")
             new_name=$(echo $new_name | sed -E "s/linux-aarch64/linux-arm64/")
             mv --verbose "$file" "$new_name"
@@ -206,8 +207,7 @@ jobs:
                 ls -la
                 exit 1
             fi
-            version_without_v=$(echo "${{ env.RELEASE_TAG_WITHOUT_PREFIX }}" | sed -E "s/v(.*)/\\1/")
-            sed -i "s/\[\[VERSION_WITHOUT_V\]\]/$version_without_v/" $PKGBUILD_FILE
+            sed -i "s/\[\[VERSION_WITHOUT_V\]\]/${VERSION_WITHOUT_V}/" $PKGBUILD_FILE
             desktop_file_sha256=$(sha256sum $AUR_DIR/github-desktop-plus.desktop | awk '{ print $1 }')
             sed -i "s/\[\[DESKTOP_FILE_SHA256\]\]/$desktop_file_sha256/" $PKGBUILD_FILE
             launch_script_sha256=$(sha256sum $AUR_DIR/launch-app.sh | awk '{ print $1 }')
@@ -233,7 +233,7 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message:
-            'Update AUR package to version ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}'
+            'Update AUR package to version v${{ env.VERSION_WITHOUT_V }}'
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package github-desktop-plus
@@ -249,7 +249,7 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message:
-            'Update AUR package to version ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}'
+            'Update AUR package to version v${{ env.VERSION_WITHOUT_V }}'
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Publish AUR package github-desktop-plus-git
@@ -265,7 +265,7 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message:
-            'Update AUR package to version ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}'
+            'Update AUR package to version v${{ env.VERSION_WITHOUT_V }}'
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Upload PKGBUILD files
