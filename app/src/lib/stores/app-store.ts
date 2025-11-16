@@ -4233,7 +4233,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState, branchesState } = repositoryState
-    const { currentBranchProtected, stashEntries } = changesState
+    const { currentBranchProtected } = changesState
     const { tip } = branchesState
     const hasChanges = changesState.workingDirectory.files.length > 0
 
@@ -4243,19 +4243,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
-
-    // The user hasn't been presented with an explicit choice
-    if (explicitStrategy === undefined) {
-      // Even if the user has chosen to "always stash on current branch" in
-      // preferences we still want to let them know changes might be lost
-      if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
-        if (hasChanges && stashEntries.length > 0) {
-          const type = PopupType.ConfirmOverwriteStash
-          this._showPopup({ type, repository, branchToCheckout: branch })
-          return repository
-        }
-      }
-    }
 
     // Always move changes to new branch if we're on a detached head, unborn
     // branch, or a protected branch.
