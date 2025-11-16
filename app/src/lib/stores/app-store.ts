@@ -130,6 +130,7 @@ import {
   IMultiCommitOperationState,
   IConstrainedValue,
   ICompareState,
+  IChangesState,
 } from '../app-state'
 import {
   findEditorOrDefault,
@@ -1248,15 +1249,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
             // so we need to switch back over to the working directory.
             selectWorkingDirectory = true
           } else {
-            // Check if the currently selected stash still exists
-            const selectedStashFile = state.selection.selectedStashedFile
-            const selectedStashSha = selectedStashFile
-              ? stashEntries.find(
-                  e =>
-                    e.files.kind === StashedChangesLoadStates.Loaded &&
-                    e.files.files.includes(selectedStashFile)
-                )?.stashSha
-              : stashEntries[0]?.stashSha
+            const selectedStashSha =
+              state.selection.selectedStashEntry?.stashSha
 
             // If the selected stash doesn't exist anymore, select a new one
             if (
@@ -2766,16 +2760,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const isStashedChangesVisible =
       changesState.selection.kind === ChangesSelectionKind.Stash
 
-    const askForConfirmationWhenStashingAllChanges =
-      changesState.stashEntries.length > 0
-
     updatePreferredAppMenuItemLabels({
       ...labels,
       contributionTargetDefaultBranch,
       isForcePushForCurrentRepository,
       isStashedChangesVisible,
       hasCurrentPullRequest: currentPullRequest !== null,
-      askForConfirmationWhenStashingAllChanges,
+      askForConfirmationWhenStashingAllChanges: false,
     })
   }
 
@@ -3362,16 +3353,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }))
     this.repositoryStateCache.updateChangesState(repository, state => {
       let selectedStashedFile: CommittedFileChange | null = null
-      const { stashEntries, selection } = state
+      const { selection } = state
 
       // Determine which stash entry to use
-      const targetStashEntry =
-        stashEntry !== undefined
-          ? stashEntry
-          : selection.kind === ChangesSelectionKind.Stash &&
-            selection.selectedStashEntry !== null
-          ? selection.selectedStashEntry
-          : stashEntries[0] || null
+      const targetStashEntry = stashEntry ?? this.getSelectedStashEntry(state)
 
       const currentlySelectedFile =
         selection.kind === ChangesSelectionKind.Stash
@@ -3428,6 +3413,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.increment('stashViewedAfterCheckoutCount')
       this.hasUserViewedStash = true
     }
+  }
+
+  private getSelectedStashEntry(state: IChangesState): IStashEntry | null {
+    const { stashEntries, selection } = state
+    if (
+      selection.kind === ChangesSelectionKind.Stash &&
+      selection.selectedStashEntry !== null &&
+      stashEntries.some(
+        e => e.stashSha === selection.selectedStashEntry?.stashSha
+      )
+    ) {
+      return selection.selectedStashEntry
+    }
+    return stashEntries[0] ?? null
   }
 
   private async updateChangesStashDiff(repository: Repository) {
