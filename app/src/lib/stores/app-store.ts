@@ -192,6 +192,7 @@ import {
   getRemoteURL,
   getGlobalConfigPath,
   getFilesDiffText,
+  unstageAll,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -7382,34 +7383,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { changesState } = this.repositoryStateCache.get(repository)
     const { workingDirectory } = changesState
     const untrackedFiles = getUntrackedFiles(workingDirectory)
-
-    return createDesktopStashEntry(repository, branch, untrackedFiles, true)
+    return createDesktopStashEntry(repository, branch, untrackedFiles, null)
   }
 
   private async createStashEntries(
     repository: Repository,
     branch: Branch,
-    files: ReadonlyArray<WorkingDirectoryFileChange>
+    selectedFiles: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
+    // Unstage all so that only the selected files are added to the stash (otherwise, staged changes are added),
+    // and also so that deleted files are present in the index (fix 'pathspec did not match any file(s) known to git')
+    await unstageAll(repository)
+    await this._loadStatus(repository)
+
     const { changesState } = this.repositoryStateCache.get(repository)
     const { workingDirectory } = changesState
-
-    const newChangesState =
-      this.repositoryStateCache.get(repository).changesState
-    const newWorkingDirectory = newChangesState.workingDirectory
-    const stashPoppedFiles = newWorkingDirectory.files.filter(
-      stashFile =>
-        workingDirectory.files.findIndex(
-          file => file.path === stashFile.path
-        ) === -1
-    )
-
-    return createDesktopStashEntry(
-      repository,
-      branch,
-      [...files, ...stashPoppedFiles],
-      false
-    )
+    const untrackedFiles = getUntrackedFiles(workingDirectory)
+    const files = selectedFiles.map(f => f.path)
+    return createDesktopStashEntry(repository, branch, untrackedFiles, files)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

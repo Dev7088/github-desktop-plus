@@ -143,22 +143,22 @@ export async function createDesktopStashEntry(
   repository: Repository,
   branch: Branch | string,
   untrackedFilesToStage: ReadonlyArray<WorkingDirectoryFileChange>,
-  isStashAllChanges: boolean
+  selectedFiles: ReadonlyArray<string> | null
 ): Promise<boolean> {
   // We must ensure that no untracked files are present before stashing
   // See https://github.com/desktop/desktop/pull/8085
   // First ensure that all changes in file are selected
   // (in case the user has not explicitly checked the checkboxes for the untracked files)
-  const fullySelectedUntrackedFiles = untrackedFilesToStage.map(x =>
-    x.withIncludeAll(true)
-  )
+  const fullySelectedUntrackedFiles = untrackedFilesToStage
+    .filter(f => (selectedFiles ? selectedFiles.includes(f.path) : true))
+    .map(x => x.withIncludeAll(true))
   await stageFiles(repository, fullySelectedUntrackedFiles)
 
   const branchName = typeof branch === 'string' ? branch : branch.name
   const message = createDesktopStashMessage(branchName)
   const args = ['stash', 'push', '-m', message]
-  if (!isStashAllChanges) {
-    args.push(...fullySelectedUntrackedFiles.map(x => x.path))
+  if (selectedFiles) {
+    args.push(...selectedFiles)
   }
 
   const result = await git(args, repository.path, 'createStashEntry').catch(
