@@ -18,7 +18,11 @@ import { Repository } from '../../models/repository'
 import classNames from 'classnames'
 import { RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
-import { Account } from '../../models/account'
+import {
+  Account,
+  isBitbucketAccount,
+  isDotComAccount,
+} from '../../models/account'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -63,8 +67,8 @@ interface ICommitMessageAvatarProps {
    */
   readonly branch: string | null
 
-  /** Whether or not the user's account is a GHE account. */
-  readonly isEnterpriseAccount: boolean
+  /** The account associated with the repository. */
+  readonly repositoryAccount: Account | null
 
   /** Email addresses available in the relevant GitHub (Enterprise) account. */
   readonly accountEmails: ReadonlyArray<string>
@@ -329,21 +333,17 @@ export class CommitMessageAvatar extends React.Component<
     )
 
     if (warningType === 'misattribution') {
-      const accountTypeSuffix = this.props.isEnterpriseAccount
-        ? ' Enterprise'
+      const accountType = this.getAccountType(this.props.repositoryAccount)
+      const userName = this.props.user?.name
+        ? ` for ${this.props.user.name}`
         : ''
-
-      const userName =
-        this.props.user && this.props.user.name
-          ? ` for ${this.props.user.name}`
-          : ''
 
       return (
         <>
           <Row>
             <div>
-              {sharedHeader} doesn't match your GitHub{accountTypeSuffix}{' '}
-              account{userName}.{' '}
+              {sharedHeader} doesn't match your {accountType}
+              {userName}.{' '}
               <LinkButton
                 ariaLabel="Learn more about commit attribution"
                 uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
@@ -474,5 +474,18 @@ export class CommitMessageAvatar extends React.Component<
     if (email) {
       this.setState({ accountEmail: email })
     }
+  }
+
+  private getAccountType(account: Account | null) {
+    if (account === null) {
+      return 'account'
+    }
+    if (isDotComAccount(account)) {
+      return 'GitHub account'
+    }
+    if (isBitbucketAccount(account)) {
+      return 'Bitbucket account'
+    }
+    return 'GitHub Enterprise account'
   }
 }
