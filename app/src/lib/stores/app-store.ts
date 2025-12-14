@@ -1830,7 +1830,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    if (!newCommits) {
+    if (!newCommits || newCommits.length === 0) {
       return
     }
 
