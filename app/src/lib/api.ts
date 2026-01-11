@@ -3757,8 +3757,18 @@ export function getGitLabAPIEndpoint(): string {
 /** Get the account for the endpoint. */
 export function getAccountForEndpoint(
   accounts: ReadonlyArray<Account>,
-  endpoint: string
+  endpoint: string,
+  ownerLogin?: string
 ): Account | null {
+  if (ownerLogin) {
+    const match = accounts.find(
+      a => a.endpoint === endpoint && a.login === ownerLogin
+    )
+    if (match) {
+      return match
+    }
+  }
+
   return accounts.find(a => a.endpoint === endpoint) || null
 }
 

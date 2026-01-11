@@ -540,7 +540,11 @@ export class CommitStatusStore {
     checkSuiteId: number
   ): Promise<boolean> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForEndpoint(
+      this.accounts,
+      repository.endpoint,
+      owner.login
+    )
     if (account === null) {
       return false
     }
@@ -554,7 +558,11 @@ export class CommitStatusStore {
     jobId: number
   ): Promise<boolean> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForEndpoint(
+      this.accounts,
+      repository.endpoint,
+      owner.login
+    )
     if (account === null) {
       return false
     }
@@ -568,7 +576,11 @@ export class CommitStatusStore {
     workflowRunId: number
   ): Promise<boolean> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForEndpoint(
+      this.accounts,
+      repository.endpoint,
+      owner.login
+    )
     if (account === null) {
       return false
     }
@@ -582,7 +594,11 @@ export class CommitStatusStore {
     checkSuiteId: number
   ): Promise<IAPICheckSuite | null> {
     const { owner, name } = repository
-    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    const account = getAccountForEndpoint(
+      this.accounts,
+      repository.endpoint,
+      owner.login
+    )
     if (account === null) {
       return null
     }

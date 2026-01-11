@@ -42,9 +42,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {dotComAccount
-          ? this.renderAccount(dotComAccount, SignInType.DotCom)
-          : this.renderSignIn(SignInType.DotCom)}
+        {this.renderDotComAccounts()}
 
         <h2>GitHub Enterprise</h2>
         {enableMultipleEnterpriseAccounts()
@@ -72,6 +70,27 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     )
   }
 
+  private renderDotComAccounts() {
+    const dotComAccounts = this.props.accounts.filter(
+      a => a.apiType === 'dotcom'
+    )
+
+    return (
+      <>
+        {dotComAccounts.map(account => {
+          return this.renderAccount(account, SignInType.DotCom)
+        })}
+        {dotComAccounts.length === 0 ? (
+          this.renderSignIn(SignInType.DotCom)
+        ) : (
+          <Button onClick={this.onDotComSignIn}>
+            Add GitHub.com account
+          </Button>
+        )}
+      </>
+    )
+  }
+
   private renderSingleEnterpriseAccount() {
     const enterpriseAccount = this.props.accounts.find(
       a => a.apiType === 'enterprise'
@@ -96,7 +115,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           this.renderSignIn(SignInType.Enterprise)
         ) : (
           <Button onClick={this.props.onEnterpriseSignIn}>
-            Add GitHub Enteprise account
+            Add GitHub Enterprise account
           </Button>
         )}
       </>
@@ -121,22 +140,12 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         <div className="user-info-container">
           <Avatar accounts={this.props.accounts} user={avatarUser} />
           <div className="user-info">
-            {enableMultipleEnterpriseAccounts() &&
-            account.apiType === 'enterprise' ? (
-              <>
-                <div className="account-title">
-                  {account.name === account.login
-                    ? `@${account.login}`
-                    : `@${account.login} (${account.name})`}
-                </div>
-                <div className="endpoint">{getHTMLURL(account.endpoint)}</div>
-              </>
-            ) : (
-              <>
-                <div className="name">{account.name}</div>
-                <div className="login">@{account.login}</div>
-              </>
-            )}
+            <div className="account-title">
+              {account.name === account.login
+                ? `@${account.login}`
+                : `@${account.login} (${account.name})`}
+            </div>
+            <div className="endpoint">{getHTMLURL(account.endpoint)}</div>
           </div>
         </div>
         <Button onClick={this.logout(account)} className={className}>
