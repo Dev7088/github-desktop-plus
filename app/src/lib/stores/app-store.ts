@@ -787,9 +787,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onTokenInvalidated = (endpoint: string, token: string) => {
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    // This is called when we receive a 401 from the API. We can't rely on
+    // owner matching here as we don't have enough context.
+    const account = this.accounts.find(
+      a => a.endpoint === endpoint && a.token === token
+    )
 
-    if (account === null) {
+    if (account === undefined) {
       return
     }
 
